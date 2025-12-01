@@ -14,7 +14,7 @@ from sklearn.pipeline import Pipeline
 st.set_page_config(page_title="Predição Tabela FIPE", layout="wide")
 
 st.title("🚗 Sistema de Predição de Preços - Tabela FIPE")
-st.markdown("Este sistema utiliza **Machine Learning (Random Forest)** com a base de dados **COMPLETA**.")
+st.markdown("Este sistema utiliza **Machine Learning (Random Forest)** com a base de dados **COMPLETA**.") #nao foi feito recorde, utilizamos todos os dados da tabela
 
 
 @st.cache_data
@@ -22,13 +22,13 @@ def carregar_dados_completo_v2():
     try:
         
         try:
-            df = pd.read_csv("tabela-fipe-historico-precos.csv")
+            df = pd.read_csv("tabela-fipe-historico-precos.csv") #nome do csv (pegamnos do kaggle)
         except:
             df = pd.read_csv("tabela-fipe-historico-precos.csv", sep=';')
 
         
         if 'anoModelo' in df.columns:
-            df = df.rename(columns={'anoModelo': 'ano', 'valor': 'preco'})
+            df = df.rename(columns={'anoModelo': 'ano', 'valor': 'preco'}) #trocamos os nomes das colunas pra enxergar melhor as colunas
         
         
         if 'anoReferencia' in df.columns:
@@ -64,23 +64,23 @@ def treinar_modelo_final(_df):
    
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', 'passthrough', numerical_features),
-            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_features)
+            ('num', 'passthrough', numerical_features), #se for numero okay pode passar 
+            ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), categorical_features) #marca e modelo sao vetores binarios pro codigo nao quebrar e conseguir identificar a diferente entre modelos, marcas e anos
         ])
 
     
     model = Pipeline(steps=[
         ('preprocessor', preprocessor),
-        ('regressor', RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1))
+        ('regressor', RandomForestRegressor(n_estimators=100, random_state=42, n_jobs=-1)) #o RF usa 100 arvores de decisao e usa todos os processadores (n_jobs = -1) p treinar
     ])
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42) # usamos 20% para teste e 80% pro treinamento
     model.fit(X_train, y_train)
     
     return model, X_test, y_test, y_train
 
 
-if st.sidebar.button("⚠️ Limpar Memória (Cache)"):
+if st.sidebar.button("⚠️ Limpar Memória (Cache)"): #por algum motivo estava dando um erro por causa do @st.cache_resource, entao add um botao caso ele cotinuasse guardando informação antiga
     st.cache_data.clear()
     st.cache_resource.clear()
     st.rerun()
@@ -89,14 +89,14 @@ df = carregar_dados_completo_v2()
 
 if not df.empty:
    
-    st.toast(f"Base carregada com sucesso: {len(df)} veículos encontrados!", icon="✅")
+    st.toast(f"Base carregada com sucesso: {len(df)} veículos encontrados! :)", icon="✅")
 
     st.sidebar.header("Filtros")
     if st.sidebar.checkbox("Mostrar Dados Brutos"):
         st.dataframe(df.head())
 
    
-    with st.spinner(f'Treinando IA com todos os {len(df)} veículos... Pode levar alguns minutos.'):
+    with st.spinner(f'Treinando IA com todos os {len(df)} veículos... Pode levar alguns minutos!! Não é culpa sua, mas pode ser do seu PC...'):
         model_pipeline, X_test, y_test, y_train = treinar_modelo_final(df)
         
     if model_pipeline is not None:
@@ -110,16 +110,14 @@ if not df.empty:
         mae = mean_absolute_error(y_test, y_pred)
         
         c1.metric("Precisão (R²)", f"{r2:.2f}")
-        c1.caption("Quanto mais perto de 1.0, melhor.")
         
         c2.metric("Erro Médio", f"R$ {mae:,.2f}")
         
-       
         c3.info(f"Treinado com {len(df)} veículos")
 
         
         st.subheader("📈 Análise Visual")
-        tab1, tab2 = st.tabs(["Preço Real vs Predito", "Distribuição"])
+        tab1, tab2 = st.tabs(["Preço Real vs Previsão", "Distribuição"])
         
         with tab1:
             fig1, ax1 = plt.subplots(figsize=(8, 4))
@@ -137,7 +135,7 @@ if not df.empty:
 
       
         st.markdown("---")
-        st.header("🔮 Simulador de Preço")
+        st.header("🙃 Simulador de Preço 🙃")
         
         col1, col2, col3 = st.columns(3)
         
